@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel | Diseñarte</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap">
+<style>
+:root{
+  --font-display:"Bricolage Grotesque",system-ui,sans-serif;
+  --font-body:"Figtree",system-ui,sans-serif;
+  --bg:#F3F4F1;--surface:#fff;--ink:#14161F;--muted:#586074;--line:rgba(20,22,31,.14);
+  --cobalt:#2B44FF;--sun:#FFC533;--danger:#C0392B;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.5 var(--font-body);min-height:100vh}
+h1,h2,h3{font-family:var(--font-display);margin:0;letter-spacing:-.02em}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 18px 80px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:0;background:var(--cobalt);color:#fff;font-weight:650;transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:none;border:1.5px solid var(--line);color:var(--ink)}
+.btn.danger{background:var(--danger)}
+.btn.sm{padding:7px 14px;font-size:.88rem}
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label{font-weight:650;font-size:.92rem}
+.field input,.field select,.field textarea{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.field textarea{resize:vertical;min-height:70px}
+.row2{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+.check{display:flex;align-items:center;gap:8px;font-weight:600}
+
+/* login */
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+#login[hidden]{display:none}
+.login-card{background:var(--surface);border-radius:24px;padding:32px;width:min(360px,100%);box-shadow:0 24px 60px -30px rgba(20,22,31,.4)}
+.login-card h1{font-size:1.5rem;margin-bottom:6px}
+.login-card p{color:var(--muted);margin:0 0 20px;font-size:.92rem}
+.error{color:var(--danger);font-size:.9rem;min-height:1.2em;margin-top:4px}
+
+/* header */
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);margin-bottom:22px}
+header .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:750;font-size:1.3rem}
+header .brand svg{width:34px;height:26px}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+
+/* lista */
+.list{display:grid;gap:12px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:14px;display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center}
+.item.is-hidden{opacity:.55}
+.thumb{width:64px;height:64px;border-radius:12px;background:#DADDE3;overflow:hidden;display:grid;place-items:center;color:rgba(20,22,31,.35)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb svg{width:26px;height:26px}
+.info strong{display:block;font-weight:650}
+.info span{color:var(--muted);font-size:.88rem}
+.tag{display:inline-block;margin-top:4px;font-size:.76rem;font-weight:700;padding:2px 9px;border-radius:999px;background:#EDEFEA;color:var(--muted)}
+.tag.off{background:#FBE3E1;color:var(--danger)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.switch{position:relative;width:44px;height:26px;flex:none}
+.switch input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.switch i{position:absolute;inset:0;background:#D3D6DE;border-radius:999px;transition:background .2s}
+.switch i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:translate .2s}
+.switch input:checked+i{background:var(--cobalt)}
+.switch input:checked+i::after{translate:18px 0}
+
+/* dialog */
+dialog{border:0;padding:0;border-radius:24px;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(14,16,22,.55)}
+.dlg-in{padding:22px;overflow:auto;max-height:calc(100dvh - 24px)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.x{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:none;display:grid;place-items:center}
+.x svg{width:16px;height:16px}
+.dlg-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+.msg{font-size:.9rem;min-height:1.2em;margin-top:6px}
+.msg.err{color:var(--danger)}
+.msg.ok{color:#1E7A46}
+
+/* fotos */
+.pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin:6px 0 16px}
+.pic{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#DADDE3}
+.pic img{width:100%;height:100%;object-fit:cover}
+.pic button{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(14,16,22,.7);color:#fff;display:grid;place-items:center}
+.pic button svg{width:13px;height:13px}
+.uploadbox{border:1.5px dashed var(--line);border-radius:16px;padding:18px;text-align:center;color:var(--muted)}
+.uploadbox input{display:none}
+.uploadbox label{color:var(--cobalt);font-weight:650;cursor:pointer}
+
+.empty{color:var(--muted);text-align:center;padding:40px 0}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <h1>Panel Diseñarte</h1>
+    <p>Acceso solo para el equipo. Inicia sesión para continuar.</p>
+    <div class="field"><label for="luser">Usuario</label><input id="luser" type="text" autocomplete="username" required></div>
+    <div class="field"><label for="lpass">Contraseña</label><input id="lpass" type="password" autocomplete="current-password" required></div>
+    <p class="error" id="loginErr"></p>
+    <button class="btn" type="submit" style="width:100%;justify-content:center">Entrar</button>
+  </form>
+</section>
+
+<div class="wrap" id="panel" hidden>
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 44 32" aria-hidden="true"><ellipse cx="22" cy="16" rx="21" ry="15" fill="#2B44FF"/><path d="M13 21v-6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v6" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M10.5 21h23" stroke="#FFC533" stroke-width="3" stroke-linecap="round"/></svg>
+      <span>Panel Diseñarte</span>
+    </div>
+    <button class="btn ghost sm" id="logout">Cerrar sesión</button>
+  </header>
+
+  <div class="toolbar">
+    <h2 style="font-size:1.3rem">Muebles</h2>
+    <button class="btn" id="newBtn">+ Agregar mueble</button>
+  </div>
+
+  <div class="list" id="list"><p class="empty">Cargando…</p></div>
+</div>
+
+<!-- Editar / crear mueble -->
+<dialog id="dlg">
+  <div class="dlg-in">
+    <div class="dlg-head">
+      <h3 id="dlgTitle">Nuevo mueble</h3>
+      <button class="x" id="dlgClose" type="button" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <form id="form">
+      <div class="field"><label for="fname">Nombre</label><input id="fname" required></div>
+      <div class="field"><label for="fdesc">Descripción corta</label><textarea id="fdesc"></textarea></div>
+      <div class="row2">
+        <div class="field"><label for="fcat">Categoría</label>
+          <select id="fcat"><option value="hogar">Hogar</option><option value="exterior">Exterior</option></select>
+        </div>
+        <div class="field"><label for="fdims">Medidas</label><input id="fdims" placeholder="120 × 90 × 75 cm"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="fprice">Precio (RD$)</label><input id="fprice" type="number" min="0" step="1" required></div>
+        <div class="field"><label for="fsale">Precio de oferta (opcional)</label><input id="fsale" type="number" min="0" step="1"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="forder">Orden</label><input id="forder" type="number" step="1" value="0"></div>
+        <div class="field"><label class="check" style="margin-top:26px"><input type="checkbox" id="fvis" checked> Visible en la tienda</label></div>
+      </div>
+
+      <div id="picsWrap" hidden>
+        <label style="font-weight:650;font-size:.92rem">Fotos</label>
+        <div class="pics" id="pics"></div>
+        <div class="uploadbox">
+          <label for="fileInput">Subir foto</label> o arrástrala aquí
+          <input id="fileInput" type="file" accept="image/*" multiple>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem" id="picsHint">Guarda el mueble primero para poder subirle fotos.</p>
+
+      <p class="msg" id="formMsg"></p>
+      <div class="dlg-actions">
+        <button class="btn ghost" type="button" id="deleteBtn" style="margin-right:auto" hidden>Eliminar mueble</button>
+        <button class="btn ghost" type="button" id="cancelBtn">Cancelar</button>
+        <button class="btn" type="submit" id="saveBtn">Guardar</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  const SUPABASE_URL = 'https://dqhfdfnyedcarpfvnqsx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaGZkZm55ZWRjYXJwZnZucXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyOTczMTQsImV4cCI6MjEwNTg3MzMxNH0.YIBbyvxuDidB7k2b77vnRGEDvaNeUEbt3VMDWXzZgDc';
+  const USER_DOMAIN = 'disenarte-admin.local';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const num = n => 'RD$ ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const catLabel = { hogar: 'Hogar', exterior: 'Exterior' };
+
+  /* ---------- sesión ---------- */
+  const loginSec = $('#login'), panel = $('#panel');
+  async function checkSession() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) { loginSec.hidden = true; panel.hidden = false; loadList(); }
+    else { loginSec.hidden = false; panel.hidden = true; }
+  }
+  $('#loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const user = $('#luser').value.trim().toLowerCase();
+    const pass = $('#lpass').value;
+    const errEl = $('#loginErr'); errEl.textContent = '';
+    if (!user || !pass) return;
+    const email = user.includes('@') ? user : `${user}@${USER_DOMAIN}`;
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) { errEl.textContent = 'Usuario o contraseña incorrectos.'; return; }
+    $('#lpass').value = '';
+    checkSession();
+  });
+  $('#logout').addEventListener('click', async () => { await sb.auth.signOut(); checkSession(); });
+
+  /* ---------- lista ---------- */
+  const list = $('#list');
+  let items = [];
+  async function loadList() {
+    list.innerHTML = '<p class="empty">Cargando…</p>';
+    const { data, error } = await sb
+      .from('furniture')
+      .select('id,name,description,category,price,sale_price,dims,is_visible,sort_order,furniture_images(id,url,position)')
+      .order('sort_order', { ascending: true })
+      .order('position', { ascending: true, foreignTable: 'furniture_images' });
+    if (error) { list.innerHTML = '<p class="empty">No se pudo cargar. Intenta de nuevo.</p>'; console.error(error); return; }
+    items = data || [];
+    renderList();
+  }
+  function renderList() {
+    if (!items.length) { list.innerHTML = '<p class="empty">No hay muebles todavía.</p>'; return; }
+    list.innerHTML = items.map(p => `
+      <div class="item ${p.is_visible ? '' : 'is-hidden'}" data-id="${p.id}">
+        <div class="thumb">${p.furniture_images[0] ? `<img src="${p.furniture_images[0].url}" alt="">` : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 18v-6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v6"/><path d="M3 18h18M5 18v2M19 18v2M3 12h18"/></svg>'}</div>
+        <div class="info">
+          <strong>${p.name}</strong>
+          <span>${catLabel[p.category] || p.category} · ${num(p.sale_price || p.price)}${p.sale_price ? ` <s>${num(p.price)}</s>` : ''}</span>
+          <span class="tag ${p.is_visible ? '' : 'off'}">${p.is_visible ? 'Visible' : 'Oculto'}</span>
+        </div>
+        <div class="actions">
+          <label class="switch" title="Mostrar u ocultar en la tienda">
+            <input type="checkbox" data-toggle="${p.id}" ${p.is_visible ? 'checked' : ''}><i></i>
+          </label>
+          <button class="btn ghost sm" data-edit="${p.id}">Editar</button>
+        </div>
+      </div>`).join('');
+  }
+  list.addEventListener('change', async e => {
+    const t = e.target.closest('[data-toggle]'); if (!t) return;
+    const id = t.dataset.toggle;
+    const { error } = await sb.from('furniture').update({ is_visible: t.checked }).eq('id', id);
+    if (error) { alert('No se pudo actualizar. Intenta de nuevo.'); t.checked = !t.checked; return; }
+    const it = items.find(x => x.id === id); if (it) it.is_visible = t.checked;
+    renderList();
+  });
+  list.addEventListener('click', e => {
+    const b = e.target.closest('[data-edit]'); if (!b) return;
+    openEdit(items.find(x => x.id === b.dataset.edit));
+  });
+
+  /* ---------- formulario ---------- */
+  const dlg = $('#dlg'), form = $('#form'), formMsg = $('#formMsg');
+  let editingId = null;
+
+  function resetForm() {
+    form.reset(); formMsg.textContent = ''; formMsg.className = 'msg';
+    $('#fvis').checked = true; $('#forder').value = items.length;
+  }
+  function openNew() {
+    editingId = null; resetForm();
+    $('#dlgTitle').textContent = 'Nuevo mueble';
+    $('#deleteBtn').hidden = true;
+    $('#picsWrap').hidden = true; $('#picsHint').hidden = false;
+    dlg.showModal();
+  }
+  function openEdit(p) {
+    if (!p) return;
+    editingId = p.id; resetForm();
+    $('#dlgTitle').textContent = 'Editar mueble';
+    $('#fname').value = p.name; $('#fdesc').value = p.description || '';
+    $('#fcat').value = p.category; $('#fdims').value = p.dims || '';
+    $('#fprice').value = p.price; $('#fsale').value = p.sale_price || '';
+    $('#forder').value = p.sort_order; $('#fvis').checked = p.is_visible;
+    $('#deleteBtn').hidden = false;
+    $('#picsWrap').hidden = false; $('#picsHint').hidden = true;
+    renderPics(p.furniture_images || []);
+    dlg.showModal();
+  }
+  $('#newBtn').addEventListener('click', openNew);
+  $('#dlgClose').addEventListener('click', () => dlg.close());
+  $('#cancelBtn').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const payload = {
+      name: $('#fname').value.trim(),
+      description: $('#fdesc').value.trim(),
+      category: $('#fcat').value,
+      dims: $('#fdims').value.trim(),
+      price: Number($('#fprice').value),
+      sale_price: $('#fsale').value ? Number($('#fsale').value) : null,
+      sort_order: Number($('#forder').value) || 0,
+      is_visible: $('#fvis').checked
+    };
+    formMsg.textContent = 'Guardando…'; formMsg.className = 'msg';
+    if (editingId) {
+      const { error } = await sb.from('furniture').update(payload).eq('id', editingId);
+      if (error) { formMsg.textContent = 'No se pudo guardar.'; formMsg.className = 'msg err'; console.error(error); return; }
+      await loadList(); dlg.close();
+    } else {
+      const { data, error } = await sb.from('furniture').insert(payload).select().single();
+      if (error) { formMsg.textContent = 'No se pudo crear.'; formMsg.className = 'msg err'; console.error(error); return; }
+      await loadList();
+      // deja el diálogo abierto en modo edición para poder subir fotos de una vez
+      openEdit(items.find(x => x.id === data.id));
+      formMsg.textContent = 'Mueble creado. Ya puedes subirle fotos.'; formMsg.className = 'msg ok';
+    }
+  });
+
+  $('#deleteBtn').addEventListener('click', async () => {
+    if (!editingId) return;
+    if (!confirm('¿Eliminar este mueble? Esta acción no se puede deshacer.')) return;
+    const { error } = await sb.from('furniture').delete().eq('id', editingId);
+    if (error) { alert('No se pudo eliminar.'); return; }
+    await loadList(); dlg.close();
+  });
+
+  /* ---------- fotos ---------- */
+  const picsBox = $('#pics');
+  function renderPics(images) {
+    picsBox.innerHTML = images.map(img => `
+      <div class="pic" data-img="${img.id}" data-url="${img.url}">
+        <img src="${img.url}" alt="">
+        <button type="button" data-del-img="${img.id}" aria-label="Quitar foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>`).join('');
+  }
+  picsBox.addEventListener('click', async e => {
+    const b = e.target.closest('[data-del-img]'); if (!b) return;
+    const wrap = b.closest('.pic');
+    const path = wrap.dataset.url.split('/furniture-images/')[1];
+    await sb.storage.from('furniture-images').remove([path]);
+    await sb.from('furniture_images').delete().eq('id', b.dataset.delImg);
+    const it = items.find(x => x.id === editingId);
+    if (it) it.furniture_images = it.furniture_images.filter(i => i.id !== b.dataset.delImg);
+    renderPics(it ? it.furniture_images : []);
+  });
+
+  $('#fileInput').addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !editingId) return;
+    formMsg.textContent = 'Subiendo fotos…'; formMsg.className = 'msg';
+    const it = items.find(x => x.id === editingId);
+    let pos = (it.furniture_images || []).reduce((m, i) => Math.max(m, i.position), 0);
+    for (const file of files) {
+      pos += 1;
+      const path = `${editingId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+      const { error: upErr } = await sb.storage.from('furniture-images').upload(path, file);
+      if (upErr) { formMsg.textContent = 'No se pudo subir una foto.'; formMsg.className = 'msg err'; console.error(upErr); continue; }
+      const { data: pub } = sb.storage.from('furniture-images').getPublicUrl(path);
+      const { data: row, error: insErr } = await sb.from('furniture_images')
+        .insert({ furniture_id: editingId, url: pub.publicUrl, position: pos }).select().single();
+      if (!insErr) it.furniture_images.push(row);
+    }
+    formMsg.textContent = 'Fotos actualizadas.'; formMsg.className = 'msg ok';
+    renderPics(it.furniture_images);
+    e.target.value = '';
+  });
+
+  checkSession();
+})();
+</script>
+</body>
+</html>

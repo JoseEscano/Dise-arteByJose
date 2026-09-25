@@ -38,6 +38,7 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
 html{background:var(--bg);scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px);-webkit-text-size-adjust:100%}
 @media (min-width:900px){html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 88px)}}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.55 var(--font-body);-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
@@ -99,6 +100,13 @@ a{color:inherit}
 .cart .count{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--cobalt);color:#fff;font-size:.75rem;font-weight:700;display:grid;place-items:center}
 .cart .count.bump{animation:bump .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.5)}100%{transform:scale(1)}}
+
+.ph-art{width:100%;height:100%;display:grid;place-items:center;color:rgba(20,22,31,.32);background:#DADDE3}
+:root[data-theme="dark"] .ph-art{background:#3A3F4D}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ph-art{background:#3A3F4D}}
+.ph-art svg{width:36%;height:36%}
+.thumb.ph{background:#DADDE3}
+.card-art img{width:100%;height:100%;object-fit:cover}
 
 /* ---------- carrusel ---------- */
 .hero-wrap{padding-top:8px}
@@ -190,7 +198,9 @@ a{color:inherit}
 @media (min-width:1080px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:26px;overflow:hidden;animation:cardIn .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
 @keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.card-art{position:relative;aspect-ratio:5/4;background:var(--tint);display:grid;place-items:center;padding:14px 12px 8px;overflow:hidden}
+.card-art{position:relative;aspect-ratio:5/4;background:var(--tint);display:grid;place-items:center;padding:14px 12px 8px;overflow:hidden;border:0;width:100%;cursor:pointer}
+.linklike{border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.linklike:hover{text-decoration:underline}
 .card-art svg{width:94%;height:auto;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 .card:hover .card-art svg{transform:translateY(-5px) scale(1.04)}
 .badge{position:absolute;top:12px;left:12px;background:var(--sun);color:#14161F;font-weight:750;font-size:.82rem;padding:4px 11px;border-radius:999px}
@@ -241,6 +251,37 @@ a{color:inherit}
 .faq-list details[open] summary::after{rotate:-135deg;translate:0 3px}
 .faq-list details p{padding:0 4px 22px;color:var(--muted);max-width:62ch}
 .faq-list details p a{color:var(--link);font-weight:600}
+
+/* ---------- detalle de producto ---------- */
+.pdlg{border:0;padding:0;border-radius:28px;width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);color:var(--ink)}
+.pdlg::backdrop{background:rgba(14,16,22,.55)}
+.pd-in{display:flex;flex-direction:column;max-height:calc(100dvh - 24px);overflow:auto}
+@media (min-width:720px){.pd-in{display:grid;grid-template-columns:1fr 1fr;align-items:start}}
+.pd-close{position:sticky;top:10px;margin:10px 10px 0 auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;z-index:2}
+.pd-close svg{width:18px;height:18px}
+@media (min-width:720px){.pd-close{grid-column:1/-1}}
+.pd-gal{position:relative;aspect-ratio:5/4;background:#DADDE3;overflow:hidden}
+:root[data-theme="dark"] .pd-gal,@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pd-gal{background:#3A3F4D}}
+.pd-slide{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .35s ease;pointer-events:none}
+.pd-slide.is-on{opacity:1}
+.pd-slide svg{width:34%;height:34%;color:rgba(20,22,31,.28)}
+.pd-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:6px}
+.pd-dots button{width:8px;height:8px;border-radius:50%;border:0;background:rgba(20,22,31,.28);padding:0}
+.pd-dots button.is-on{background:rgba(20,22,31,.7)}
+.pd-arrow{position:absolute;top:50%;translate:0 -50%;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.9);display:grid;place-items:center}
+.pd-arrow[hidden],.pd-dots[hidden]{display:none}
+.pd-arrow svg{width:18px;height:18px}
+.pd-arrow.l{left:10px}.pd-arrow.r{right:10px}
+.pd-body{padding:18px 22px 26px}
+.pd-body h3{font-size:1.5rem;font-weight:700}
+.pd-body .desc{color:var(--muted);margin-top:6px}
+.pd-price{display:flex;align-items:baseline;gap:10px;margin-top:14px}
+.pd-price strong{font-size:1.3rem;font-weight:750}
+.pd-price s{color:var(--muted)}
+.pd-specs{list-style:none;margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line);display:grid;gap:8px}
+.pd-specs li{display:flex;justify-content:space-between;gap:10px;font-size:.95rem}
+.pd-specs span:first-child{color:var(--muted)}
+.pd-actions{display:grid;gap:10px;margin-top:20px}
 
 /* ---------- pedido ---------- */
 .order{border:0;padding:0;border-radius:28px;width:min(480px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(14,16,22,.6)}
@@ -677,6 +718,30 @@ a{color:inherit}
   </a>
 </div>
 
+<dialog class="pdlg" id="pd" aria-labelledby="pd-title">
+  <div class="pd-in">
+    <button class="pd-close" id="pdClose" type="button" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="pd-gal" id="pdGal">
+      <button class="pd-arrow l" id="pdPrev" type="button" aria-label="Foto anterior"><svg viewBox="0 0 24 24" fill="none" stroke="#14161F" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="pd-arrow r" id="pdNext" type="button" aria-label="Foto siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="#14161F" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      <div class="pd-dots" id="pdDots"></div>
+    </div>
+    <div class="pd-body">
+      <h3 id="pd-title"></h3>
+      <p class="desc" id="pdDesc"></p>
+      <div class="pd-price"><strong id="pdPrice"></strong><s id="pdOld" hidden></s></div>
+      <ul class="pd-specs">
+        <li><span>Medidas</span><span id="pdDims"></span></li>
+        <li><span>Categoría</span><span id="pdCat"></span></li>
+      </ul>
+      <div class="pd-actions">
+        <button class="add" type="button" id="pdAdd">Agregar al pedido</button>
+        <a class="ask" id="pdAsk" href="#" target="_blank" rel="noopener">Pedir por WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</dialog>
+
 <dialog class="order" id="order" aria-labelledby="o-title">
   <div class="order-in">
     <div class="order-head">
@@ -696,14 +761,15 @@ a{color:inherit}
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 (() => {
   'use strict';
 
   // Número de WhatsApp de la tienda, con código de país y sin signos. Ejemplo: '18095551234'
-  const WHATSAPP_NUMBER = '18493914325';
+  const WHATSAPP_NUMBER = '';
   // Enlace a tu perfil de Instagram. Ejemplo: 'https://www.instagram.com/disenarte'
-  const INSTAGRAM_URL = 'https://www.instagram.com/disenartemuebles_?stkn=MTQ0dTlwMnhjNHdmdQ==';
+  const INSTAGRAM_URL = '';
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -711,24 +777,43 @@ a{color:inherit}
   const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const num = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const money = n => 'RD$ ' + num(n);
+  const SUPABASE_URL = 'https://dqhfdfnyedcarpfvnqsx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaGZkZm55ZWRjYXJwZnZucXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyOTczMTQsImV4cCI6MjEwNTg3MzMxNH0.YIBbyvxuDidB7k2b77vnRGEDvaNeUEbt3VMDWXzZgDc';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const phArt = () => '<div class="ph-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v6"/><path d="M3 18h18M5 18v2M19 18v2M3 12h18"/></svg></div>';
   const waBase = 'https://wa.me/' + WHATSAPP_NUMBER;
   const wa = t => waBase + '?text=' + encodeURIComponent(t);
   const unit = p => p.sale || p.price;
 
-  /* ---------- datos ---------- */
-  const products = [
-    { id:'sofa', name:'Sofá Nube', desc:'3 plazas, tela lavable', cat:'hogar', sym:'sofa', price:42900, sale:34900, kw:'sofa sala living couch', tint:'#DCE2FF', v:'--c1:#2B44FF;--c2:#1E31C9;--c3:#8A5A33' },
-    { id:'sillon', name:'Sillón Brisa', desc:'Respaldo alto, patas de madera', cat:'hogar', sym:'armchair', price:18500, kw:'sillon butaca silla sala', tint:'#FFF0CF', v:'--c1:#F0B43C;--c2:#C98B1F;--c3:#4A2F1B' },
-    { id:'comedor', name:'Comedor Roble', desc:'Mesa y sillas de roble macizo', cat:'hogar', sym:'table', price:58000, sale:46400, kw:'mesa comedor sillas cocina', tint:'#EFE4D2', v:'--c1:#C89B6A;--c2:#2B2F3E;--c4:#FFC533' },
-    { id:'lampara', name:'Lámpara Arco', desc:'Luz cálida, 190 cm de alto', cat:'hogar', sym:'lamp', price:6900, sale:4900, kw:'lampara luz iluminacion pie', tint:'#E7E3F5', v:'--c1:#14161F;--c3:#B8893C;--c4:#FFC533' },
-    { id:'estante', name:'Estante Módulo', desc:'Roble, 4 repisas, 120 × 180 cm', cat:'hogar', sym:'shelf', price:14200, kw:'estante libreria repisa biblioteca librero', tint:'#E4EEE0', v:'--c1:#C89B6A;--c2:#A87D4B;--c3:#7A4B2F;--c4:#2B44FF' },
-    { id:'tumbona', name:'Tumbona Caribe', desc:'Reclinable, tela de secado rápido', cat:'exterior', sym:'lounger', price:12800, sale:9900, kw:'tumbona reposera piscina playa', tint:'#FFE7CC', v:'--c1:#2B44FF;--c3:#5C3A1E;--c4:#FFC533' },
-    { id:'sombrilla', name:'Sombrilla Terraza', desc:'Poste de madera, 2,5 m de ancho', cat:'exterior', sym:'parasol', price:5400, kw:'sombrilla parasol sol terraza', tint:'#D8EFE6', v:'--c1:#2B44FF;--c2:#fff;--c3:#8A5A33' },
-    { id:'banco', name:'Banco Jardín', desc:'Madera tratada para exterior', cat:'exterior', sym:'bench', price:8700, sale:6900, kw:'banco jardin patio', tint:'#E6EFDC', v:'--c1:#C89B6A;--c2:#2B2F3E' }
-  ];
+  /* ---------- datos (desde Supabase) ---------- */
+  let products = [];
+  async function loadProducts() {
+    grid.innerHTML = '<p style="grid-column:1/-1;color:var(--muted);padding:24px 0">Cargando muebles…</p>';
+    const { data, error } = await sb
+      .from('furniture')
+      .select('id,name,description,category,price,sale_price,dims,sort_order,furniture_images(url,position)')
+      .eq('is_visible', true)
+      .order('sort_order', { ascending: true })
+      .order('position', { ascending: true, foreignTable: 'furniture_images' });
+    if (error) {
+      grid.innerHTML = '<p style="grid-column:1/-1;color:var(--muted);padding:24px 0">No pudimos cargar el catálogo. Intenta de nuevo en un momento.</p>';
+      console.error(error);
+      return;
+    }
+    products = (data || []).map(r => ({
+      id: r.id, name: r.name, desc: r.description || '', cat: r.category,
+      price: Number(r.price), sale: r.sale_price != null ? Number(r.sale_price) : null,
+      dims: r.dims || '', images: (r.furniture_images || []).map(i => i.url)
+    }));
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+      Object.keys(saved).forEach(id => { if (products.some(p => p.id === id) && saved[id] > 0) state.cart[id] = Math.min(99, saved[id] | 0); });
+    } catch (err) {}
+    renderGrid(); syncTabs(); updateCart(false);
+  }
   const quick = [
-    { label:'Sofás', q:'sofa' }, { label:'Comedores', q:'comedor' },
-    { label:'Tumbonas', q:'tumbona' }, { label:'Lámparas', q:'lampara' }
+    { label:'Sofás', q:'sofá' }, { label:'Comedores', q:'comedor' },
+    { label:'Tumbonas', q:'tumbona' }, { label:'Lámparas', q:'lámpara' }
   ];
 
   const state = { tab:'todo', q:'', cart:{} };
@@ -738,7 +823,7 @@ a{color:inherit}
   const matches = (p, q) => {
     const t = tokens(q);
     if (!t.length) return true;
-    const hay = norm(p.name + ' ' + p.desc + ' ' + p.kw);
+    const hay = norm(p.name + ' ' + p.desc);
     return t.every(x => hay.includes(x));
   };
   const inTab = (p, tab) => tab === 'todo' || (tab === 'ofertas' ? !!p.sale : p.cat === tab);
@@ -774,12 +859,12 @@ a{color:inherit}
     }
     grid.innerHTML = list.map((p, i) => `
       <article class="card" style="--i:${i}">
-        <div class="card-art" style="--tint:${p.tint}">
+        <button class="card-art" type="button" data-open="${p.id}" aria-label="Ver detalles de ${p.name}">
           ${p.sale ? `<span class="badge">-${pct(p)}%</span>` : ''}
-          <svg viewBox="0 0 200 160" style="${p.v}" aria-hidden="true"><use href="#sym-${p.sym}"/></svg>
-        </div>
+          ${p.images[0] ? `<img src="${p.images[0]}" alt="" loading="lazy">` : phArt()}
+        </button>
         <div class="card-body">
-          <h3>${p.name}</h3>
+          <h3><button class="linklike" type="button" data-open="${p.id}">${p.name}</button></h3>
           <p class="desc">${p.desc}</p>
           <div class="price"><strong>${money(p.sale || p.price)}</strong>${p.sale ? `<s>${money(p.price)}</s>` : ''}</div>
           <button class="add" type="button" data-id="${p.id}" aria-label="Agregar ${p.name} al pedido">Agregar</button>
@@ -788,7 +873,60 @@ a{color:inherit}
       </article>`).join('');
   }
 
-  /* ---------- pedido por WhatsApp ---------- */
+  /* ---------- ficha de producto ---------- */
+  const pd = $('#pd'), pdGal = $('#pdGal');
+  const catLabel = { hogar:'Hogar', exterior:'Exterior' };
+  let pdIdx = 0;
+  function pdSlides(p) {
+    pdGal.querySelectorAll('.pd-slide').forEach(n => n.remove());
+    const dots = $('#pdDots'); dots.innerHTML = '';
+    const photos = p.images.length ? p.images : [null];
+    const n = photos.length;
+    for (let i = 0; i < n; i++) {
+      const sl = document.createElement('div');
+      sl.className = 'pd-slide' + (i === 0 ? ' is-on' : '');
+      sl.innerHTML = photos[i] ? `<img src="${photos[i]}" alt="" style="width:100%;height:100%;object-fit:cover">` : phArt();
+      pdGal.insertBefore(sl, dots);
+      const d = document.createElement('button');
+      d.type = 'button'; d.className = i === 0 ? 'is-on' : ''; d.setAttribute('aria-label', `Foto ${i + 1}`);
+      d.addEventListener('click', () => pdGo(i));
+      dots.appendChild(d);
+    }
+    dots.hidden = n < 2;
+    $('#pdPrev').hidden = n < 2; $('#pdNext').hidden = n < 2;
+    pdIdx = 0;
+  }
+  function pdGo(i) {
+    const slides = $$('.pd-slide', pdGal), dots = $$('#pdDots button');
+    pdIdx = (i + slides.length) % slides.length;
+    slides.forEach((s, k) => s.classList.toggle('is-on', k === pdIdx));
+    dots.forEach((d, k) => d.classList.toggle('is-on', k === pdIdx));
+  }
+  $('#pdPrev').addEventListener('click', () => pdGo(pdIdx - 1));
+  $('#pdNext').addEventListener('click', () => pdGo(pdIdx + 1));
+
+  function openProduct(id) {
+    const p = find(id);
+    pdSlides(p);
+    $('#pd-title').textContent = p.name;
+    $('#pdDesc').textContent = p.desc;
+    $('#pdPrice').textContent = money(unit(p));
+    const old = $('#pdOld'); old.hidden = !p.sale; old.textContent = p.sale ? money(p.price) : '';
+    $('#pdDims').textContent = p.dims || '—';
+    $('#pdCat').textContent = catLabel[p.cat] || p.cat;
+    const addBtn = $('#pdAdd');
+    addBtn.onclick = () => { state.cart[p.id] = Math.min(99, (state.cart[p.id] || 0) + 1); save(); updateCart(true); addBtn.textContent = 'Agregado'; setTimeout(() => addBtn.textContent = 'Agregar al pedido', 1200); };
+    $('#pdAsk').href = wa(`Hola, quiero pedir: 1 x ${p.name} (${money(unit(p))}). Pago contraentrega. ¿Está disponible?`);
+    pd.showModal();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-open]'); if (!b) return;
+    openProduct(b.dataset.open);
+  });
+  $('#pdClose').addEventListener('click', () => pd.close());
+  pd.addEventListener('click', e => { if (e.target === pd) pd.close(); });
+
+    /* ---------- pedido por WhatsApp ---------- */
   const KEY = 'disenarte-pedido';
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
@@ -873,7 +1011,7 @@ a{color:inherit}
       d.dataset.i = i;
       if (it.product) {
         const p = it.product; d.className = 'opt';
-        d.innerHTML = `<span class="thumb" style="--tint:${p.tint}"><svg viewBox="0 0 200 160" style="${p.v}" aria-hidden="true"><use href="#sym-${p.sym}"/></svg></span><span class="nm">${p.name}</span><span class="pr">${money(p.sale || p.price)}</span>`;
+        d.innerHTML = `<span class="thumb${p.images[0] ? '' : ' ph'}">${p.images[0] ? `<img src="${p.images[0]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px">` : ''}</span><span class="nm">${p.name}</span><span class="pr">${money(p.sale || p.price)}</span>`;
       } else if (it.quick) {
         d.className = 'opt quick';
         d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="nm">${it.quick.label}</span>`;
@@ -1026,7 +1164,7 @@ a{color:inherit}
   /* ---------- inicio ---------- */
   hero.dataset.tone = slides[0].dataset.tone;
   hero.dataset.img = 'false';
-  renderGrid(); syncTabs(); updateCart(false);
+  syncTabs(); loadProducts();
 })();
 </script>
 </body>
