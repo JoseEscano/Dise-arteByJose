@@ -759,9 +759,9 @@ a{color:inherit}
   'use strict';
 
   // Número de WhatsApp de la tienda, con código de país y sin signos. Ejemplo: '18095551234'
-  const WHATSAPP_NUMBER = '18493914325';
+  const WHATSAPP_NUMBER = '';
   // Enlace a tu perfil de Instagram. Ejemplo: 'https://www.instagram.com/disenarte'
-  const INSTAGRAM_URL = 'https://www.instagram.com/disenartemuebles_?stkn=MTQ0dTlwMnhjNHdmdQ==';
+  const INSTAGRAM_URL = '';
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -773,6 +773,20 @@ a{color:inherit}
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaGZkZm55ZWRjYXJwZnZucXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyOTczMTQsImV4cCI6MjEwNTg3MzMxNH0.YIBbyvxuDidB7k2b77vnRGEDvaNeUEbt3VMDWXzZgDc';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const phArt = () => '<div class="ph-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v6"/><path d="M3 18h18M5 18v2M19 18v2M3 12h18"/></svg></div>';
+  function driveFileId(url) {
+    if (!url) return '';
+    const s = url.trim();
+    let m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+    m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+    if (/^[a-zA-Z0-9_-]{10,}$/.test(s)) return s;
+    return '';
+  }
+  function driveEmbedUrl(url) {
+    const id = driveFileId(url);
+    return id ? `https://drive.google.com/file/d/${id}/preview` : '';
+  }
   const waBase = 'https://wa.me/' + WHATSAPP_NUMBER;
   const wa = t => waBase + '?text=' + encodeURIComponent(t);
   const unit = p => p.sale || p.price;
@@ -784,7 +798,7 @@ a{color:inherit}
 
     const { data: rows, error: err1 } = await sb
       .from('furniture')
-      .select('id,name,description,category,price,sale_price,dims,sort_order')
+      .select('id,name,description,category,price,sale_price,dims,sort_order,video_url')
       .eq('is_visible', true)
       .order('sort_order', { ascending: true });
     if (err1) {
@@ -814,7 +828,7 @@ a{color:inherit}
     products = (rows || []).map(r => ({
       id: r.id, name: r.name, desc: r.description || '', cat: r.category,
       price: Number(r.price), sale: r.sale_price != null ? Number(r.sale_price) : null,
-      dims: r.dims || '', images: imagesByFurniture[r.id] || []
+      dims: r.dims || '', images: imagesByFurniture[r.id] || [], video: r.video_url || ''
     }));
     try {
       const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
@@ -895,16 +909,27 @@ a{color:inherit}
     const dots = $('#pdDots');
     dots.innerHTML = '';
 
-    const photos = Array.isArray(p.images) && p.images.length ? p.images.slice() : [];
-    pdCount = photos.length || 1;
+    const items = [];
+    const embed = driveEmbedUrl(p.video);
+    if (embed) items.push({ type: 'video', url: embed });
+    (Array.isArray(p.images) ? p.images : []).forEach(u => items.push({ type: 'photo', url: u }));
+    if (!items.length) items.push({ type: 'empty' });
 
-    for (let i = 0; i < pdCount; i++) {
-      const url = photos[i] || null;
+    pdCount = items.length;
+    items.forEach((it, i) => {
       const sl = document.createElement('div');
       sl.className = 'pd-slide' + (i === 0 ? ' is-on' : '');
-      if (url) {
+      if (it.type === 'video') {
+        const ifr = document.createElement('iframe');
+        ifr.src = it.url;
+        ifr.loading = 'lazy';
+        ifr.setAttribute('allow', 'autoplay; fullscreen');
+        ifr.setAttribute('allowfullscreen', '');
+        ifr.style.cssText = 'width:100%;height:100%;border:0';
+        sl.appendChild(ifr);
+      } else if (it.type === 'photo') {
         const img = document.createElement('img');
-        img.src = url; img.alt = ''; img.loading = 'lazy';
+        img.src = it.url; img.alt = ''; img.loading = 'lazy';
         img.style.cssText = 'width:100%;height:100%;object-fit:cover';
         sl.appendChild(img);
       } else {
@@ -915,17 +940,17 @@ a{color:inherit}
       const d = document.createElement('button');
       d.type = 'button';
       d.className = i === 0 ? 'is-on' : '';
-      d.setAttribute('aria-label', `Foto ${i + 1} de ${pdCount}`);
+      d.setAttribute('aria-label', it.type === 'video' ? 'Video' : `Foto ${i + 1}`);
       d.addEventListener('click', () => pdGo(i));
       dots.appendChild(d);
-    }
+    });
 
     const multi = pdCount > 1;
     dots.hidden = !multi;
     $('#pdPrev').hidden = !multi;
     $('#pdNext').hidden = !multi;
     pdIdx = 0;
-    console.info(`[disenarte] "${p.name}": ${photos.length} foto(s) recibida(s) de Supabase.`);
+    console.info(`[disenarte] "${p.name}": ${embed ? '1 video + ' : ''}${(p.images || []).length} foto(s) en la galería.`);
   }
 
   function pdGo(i) {
@@ -959,6 +984,9 @@ a{color:inherit}
   });
   $('#pdClose').addEventListener('click', () => pd.close());
   pd.addEventListener('click', e => { if (e.target === pd) pd.close(); });
+  pd.addEventListener('close', () => {
+    $$('.pd-slide iframe', pdGal).forEach(f => { f.src = f.src; });
+  });
 
     /* ---------- pedido por WhatsApp ---------- */
   const KEY = 'disenarte-pedido';

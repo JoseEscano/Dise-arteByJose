@@ -146,6 +146,12 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
         <div class="field"><label class="check" style="margin-top:26px"><input type="checkbox" id="fvis" checked> Visible en la tienda</label></div>
       </div>
 
+      <div class="field">
+        <label for="fvideo">Video (enlace de Google Drive, opcional)</label>
+        <input id="fvideo" type="url" placeholder="https://drive.google.com/file/d/.../view">
+        <span style="color:var(--muted);font-size:.82rem">En Drive, comparte el archivo con "Cualquiera con el enlace puede ver" y pega aquí ese enlace. <a id="videoTest" href="#" target="_blank" rel="noopener" style="display:none">Probar enlace</a></span>
+      </div>
+
       <div id="picsWrap" hidden>
         <label style="font-weight:650;font-size:.92rem">Fotos</label>
         <div class="pics" id="pics"></div>
@@ -181,6 +187,26 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
   const num = n => 'RD$ ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const catLabel = { hogar: 'Hogar', exterior: 'Exterior' };
 
+  function driveFileId(url) {
+    if (!url) return '';
+    const s = url.trim();
+    let m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+    m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+    if (/^[a-zA-Z0-9_-]{10,}$/.test(s)) return s;
+    return '';
+  }
+  function driveEmbedUrl(url) {
+    const id = driveFileId(url);
+    return id ? `https://drive.google.com/file/d/${id}/preview` : '';
+  }
+  $('#fvideo').addEventListener('input', () => {
+    const embed = driveEmbedUrl($('#fvideo').value);
+    const a = $('#videoTest');
+    if (embed) { a.href = embed; a.style.display = ''; } else { a.style.display = 'none'; }
+  });
+
   /* ---------- sesión ---------- */
   const loginSec = $('#login'), panel = $('#panel');
   async function checkSession() {
@@ -209,7 +235,7 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
     list.innerHTML = '<p class="empty">Cargando…</p>';
     const { data, error } = await sb
       .from('furniture')
-      .select('id,name,description,category,price,sale_price,dims,is_visible,sort_order,furniture_images(id,url,position)')
+      .select('id,name,description,category,price,sale_price,dims,is_visible,sort_order,video_url,furniture_images(id,url,position)')
       .order('sort_order', { ascending: true })
       .order('position', { ascending: true, foreignTable: 'furniture_images' });
     if (error) { list.innerHTML = '<p class="empty">No se pudo cargar. Intenta de nuevo.</p>'; console.error(error); return; }
@@ -254,6 +280,7 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
   function resetForm() {
     form.reset(); formMsg.textContent = ''; formMsg.className = 'msg';
     $('#fvis').checked = true; $('#forder').value = items.length;
+    $('#videoTest').style.display = 'none';
   }
   function openNew() {
     editingId = null; resetForm();
@@ -270,6 +297,8 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
     $('#fcat').value = p.category; $('#fdims').value = p.dims || '';
     $('#fprice').value = p.price; $('#fsale').value = p.sale_price || '';
     $('#forder').value = p.sort_order; $('#fvis').checked = p.is_visible;
+    $('#fvideo').value = p.video_url || '';
+    $('#fvideo').dispatchEvent(new Event('input'));
     $('#deleteBtn').hidden = false;
     $('#picsWrap').hidden = false; $('#picsHint').hidden = true;
     renderPics(p.furniture_images || []);
@@ -290,7 +319,8 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
       price: Number($('#fprice').value),
       sale_price: $('#fsale').value ? Number($('#fsale').value) : null,
       sort_order: Number($('#forder').value) || 0,
-      is_visible: $('#fvis').checked
+      is_visible: $('#fvis').checked,
+      video_url: $('#fvideo').value.trim() || null
     };
     formMsg.textContent = 'Guardando…'; formMsg.className = 'msg';
     if (editingId) {
