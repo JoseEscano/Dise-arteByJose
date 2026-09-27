@@ -264,8 +264,6 @@ a{color:inherit}
 :root[data-theme="dark"] .pd-gal,@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pd-gal{background:#3A3F4D}}
 .pd-slide.is-video{background:#000}
 .pd-slide.is-video video{width:100%;height:100%;object-fit:cover;display:block}
-.vid-badge{position:absolute;top:14px;left:14px;z-index:2;display:inline-flex;align-items:center;gap:6px;background:rgba(20,22,31,.75);color:#fff;font-size:.78rem;font-weight:650;padding:5px 12px;border-radius:999px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-.vid-badge svg{width:13px;height:13px;flex:none}
 .pd-slide{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .35s ease;pointer-events:none}
 .pd-slide.is-on{opacity:1}
 .pd-slide svg{width:34%;height:34%;color:rgba(20,22,31,.28)}
@@ -899,7 +897,6 @@ a{color:inherit}
     const dots = $('#pdDots');
     dots.innerHTML = '';
     pdGal.style.removeProperty('--ar');
-    delete pdGal.dataset.videoRatio;
 
     const items = [];
     if (p.video) items.push({ type: 'video', url: p.video });
@@ -912,11 +909,6 @@ a{color:inherit}
       sl.className = 'pd-slide' + (it.type === 'video' ? ' is-video' : '') + (i === 0 ? ' is-on' : '');
       sl.dataset.type = it.type;
       if (it.type === 'video') {
-        const badge = document.createElement('span');
-        badge.className = 'vid-badge';
-        badge.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Video';
-        sl.appendChild(badge);
-
         const vid = document.createElement('video');
         vid.src = it.url;
         vid.controls = true;
@@ -926,15 +918,19 @@ a{color:inherit}
         vid.playsInline = true;
         vid.addEventListener('loadedmetadata', () => {
           if (!vid.videoWidth || !vid.videoHeight) return;
-          const ratio = vid.videoWidth / vid.videoHeight;
-          pdGal.dataset.videoRatio = ratio;
-          if (sl.classList.contains('is-on')) pdGal.style.setProperty('--ar', ratio);
+          sl.dataset.ratio = vid.videoWidth / vid.videoHeight;
+          if (sl.classList.contains('is-on')) pdGal.style.setProperty('--ar', sl.dataset.ratio);
         });
         sl.appendChild(vid);
       } else if (it.type === 'photo') {
         const img = document.createElement('img');
         img.src = it.url; img.alt = ''; img.loading = 'lazy';
         img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        img.addEventListener('load', () => {
+          if (!img.naturalWidth || !img.naturalHeight) return;
+          sl.dataset.ratio = img.naturalWidth / img.naturalHeight;
+          if (sl.classList.contains('is-on')) pdGal.style.setProperty('--ar', sl.dataset.ratio);
+        });
         sl.appendChild(img);
       } else {
         sl.innerHTML = phArt();
@@ -969,13 +965,10 @@ a{color:inherit}
     slides.forEach((s, k) => s.classList.toggle('is-on', k === pdIdx));
     dots.forEach((d, k) => d.classList.toggle('is-on', k === pdIdx));
     const active = slides[pdIdx];
-    if (active.dataset.type === 'video') {
-      if (pdGal.dataset.videoRatio) pdGal.style.setProperty('--ar', pdGal.dataset.videoRatio);
-      const v = active.querySelector('video');
-      if (v) v.play().catch(() => {});
-    } else {
-      pdGal.style.removeProperty('--ar');
-    }
+    if (active.dataset.ratio) pdGal.style.setProperty('--ar', active.dataset.ratio);
+    else pdGal.style.removeProperty('--ar');
+    const v = active.querySelector('video');
+    if (v) v.play().catch(() => {});
   }
   $('#pdPrev').addEventListener('click', () => pdGo(pdIdx - 1));
   $('#pdNext').addEventListener('click', () => pdGo(pdIdx + 1));
