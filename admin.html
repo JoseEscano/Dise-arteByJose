@@ -87,6 +87,9 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
 .uploadbox{border:1.5px dashed var(--line);border-radius:16px;padding:18px;text-align:center;color:var(--muted)}
 .uploadbox input{display:none}
 .uploadbox label{color:var(--cobalt);font-weight:650;cursor:pointer}
+.vid-current{margin:6px 0 16px}
+.vid-current video{width:100%;max-height:240px;border-radius:14px;background:#000;display:block}
+.vid-current .rm{margin-top:8px;border:0;background:none;color:var(--danger);font-weight:650;font-size:.88rem;padding:4px 0;cursor:pointer}
 
 .empty{color:var(--muted);text-align:center;padding:40px 0}
 </style>
@@ -146,11 +149,16 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
         <div class="field"><label class="check" style="margin-top:26px"><input type="checkbox" id="fvis" checked> Visible en la tienda</label></div>
       </div>
 
-      <div class="field">
-        <label for="fvideo">Video (enlace de Google Drive, opcional)</label>
-        <input id="fvideo" type="url" placeholder="https://drive.google.com/file/d/.../view">
-        <span style="color:var(--muted);font-size:.82rem">En Drive, comparte el archivo con "Cualquiera con el enlace puede ver" y pega aquí ese enlace. <a id="videoTest" href="#" target="_blank" rel="noopener" style="display:none">Probar enlace</a></span>
+      <div id="videoWrap" hidden>
+        <label style="font-weight:650;font-size:.92rem">Video (opcional, 1 por mueble)</label>
+        <div id="videoCurrent"></div>
+        <div class="uploadbox" id="videoUploadBox">
+          <label for="videoInput">Subir video</label> o arrástralo aquí
+          <input id="videoInput" type="file" accept="video/mp4,video/webm,video/quicktime">
+          <div style="margin-top:4px">Hasta 50 MB. Vertical u horizontal, se ajusta solo.</div>
+        </div>
       </div>
+      <p style="color:var(--muted);font-size:.85rem" id="videoHint">Guarda el mueble primero para poder subirle un video.</p>
 
       <div id="picsWrap" hidden>
         <label style="font-weight:650;font-size:.92rem">Fotos</label>
@@ -186,26 +194,6 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
 
   const num = n => 'RD$ ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const catLabel = { hogar: 'Hogar', exterior: 'Exterior' };
-
-  function driveFileId(url) {
-    if (!url) return '';
-    const s = url.trim();
-    let m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
-    if (m) return m[1];
-    m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-    if (m) return m[1];
-    if (/^[a-zA-Z0-9_-]{10,}$/.test(s)) return s;
-    return '';
-  }
-  function driveEmbedUrl(url) {
-    const id = driveFileId(url);
-    return id ? `https://drive.google.com/file/d/${id}/preview` : '';
-  }
-  $('#fvideo').addEventListener('input', () => {
-    const embed = driveEmbedUrl($('#fvideo').value);
-    const a = $('#videoTest');
-    if (embed) { a.href = embed; a.style.display = ''; } else { a.style.display = 'none'; }
-  });
 
   /* ---------- sesión ---------- */
   const loginSec = $('#login'), panel = $('#panel');
@@ -280,13 +268,14 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
   function resetForm() {
     form.reset(); formMsg.textContent = ''; formMsg.className = 'msg';
     $('#fvis').checked = true; $('#forder').value = items.length;
-    $('#videoTest').style.display = 'none';
+    $('#videoHint').hidden = false;
   }
   function openNew() {
     editingId = null; resetForm();
     $('#dlgTitle').textContent = 'Nuevo mueble';
     $('#deleteBtn').hidden = true;
     $('#picsWrap').hidden = true; $('#picsHint').hidden = false;
+    $('#videoWrap').hidden = true; $('#videoHint').hidden = false;
     dlg.showModal();
   }
   function openEdit(p) {
@@ -297,11 +286,11 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
     $('#fcat').value = p.category; $('#fdims').value = p.dims || '';
     $('#fprice').value = p.price; $('#fsale').value = p.sale_price || '';
     $('#forder').value = p.sort_order; $('#fvis').checked = p.is_visible;
-    $('#fvideo').value = p.video_url || '';
-    $('#fvideo').dispatchEvent(new Event('input'));
     $('#deleteBtn').hidden = false;
     $('#picsWrap').hidden = false; $('#picsHint').hidden = true;
+    $('#videoWrap').hidden = false; $('#videoHint').hidden = true;
     renderPics(p.furniture_images || []);
+    renderVideo(p);
     dlg.showModal();
   }
   $('#newBtn').addEventListener('click', openNew);
@@ -319,8 +308,7 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
       price: Number($('#fprice').value),
       sale_price: $('#fsale').value ? Number($('#fsale').value) : null,
       sort_order: Number($('#forder').value) || 0,
-      is_visible: $('#fvis').checked,
-      video_url: $('#fvideo').value.trim() || null
+      is_visible: $('#fvis').checked
     };
     formMsg.textContent = 'Guardando…'; formMsg.className = 'msg';
     if (editingId) {
@@ -383,6 +371,53 @@ dialog::backdrop{background:rgba(14,16,22,.55)}
     }
     formMsg.textContent = 'Fotos actualizadas.'; formMsg.className = 'msg ok';
     renderPics(it.furniture_images);
+    e.target.value = '';
+  });
+
+  /* ---------- video ---------- */
+  function renderVideo(p) {
+    const cur = $('#videoCurrent'), box = $('#videoUploadBox');
+    if (p.video_url) {
+      cur.innerHTML = `<div class="vid-current"><video src="${p.video_url}" controls playsinline></video><button type="button" class="rm" id="videoRemove">Quitar video</button></div>`;
+      box.hidden = true;
+    } else {
+      cur.innerHTML = '';
+      box.hidden = false;
+    }
+  }
+  $('#videoCurrent').addEventListener('click', async e => {
+    if (!e.target.closest('#videoRemove') || !editingId) return;
+    const it = items.find(x => x.id === editingId);
+    if (it && it.video_url) {
+      const path = it.video_url.split('/furniture-videos/')[1];
+      if (path) await sb.storage.from('furniture-videos').remove([decodeURIComponent(path)]);
+    }
+    const { error } = await sb.from('furniture').update({ video_url: null }).eq('id', editingId);
+    if (error) { alert('No se pudo quitar el video.'); return; }
+    if (it) it.video_url = null;
+    renderVideo(it || { video_url: null });
+  });
+  $('#videoInput').addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file || !editingId) return;
+    formMsg.textContent = 'Subiendo video…'; formMsg.className = 'msg';
+    const it = items.find(x => x.id === editingId);
+    if (it && it.video_url) {
+      const oldPath = it.video_url.split('/furniture-videos/')[1];
+      if (oldPath) await sb.storage.from('furniture-videos').remove([decodeURIComponent(oldPath)]);
+    }
+    const path = `${editingId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+    const { error: upErr } = await sb.storage.from('furniture-videos').upload(path, file);
+    if (upErr) {
+      formMsg.textContent = upErr.message && upErr.message.includes('exceeded') ? 'El video pesa más de 50 MB. Comprímelo e intenta de nuevo.' : 'No se pudo subir el video.';
+      formMsg.className = 'msg err'; console.error(upErr); e.target.value = ''; return;
+    }
+    const { data: pub } = sb.storage.from('furniture-videos').getPublicUrl(path);
+    const { error: updErr } = await sb.from('furniture').update({ video_url: pub.publicUrl }).eq('id', editingId);
+    if (updErr) { formMsg.textContent = 'No se pudo guardar el video.'; formMsg.className = 'msg err'; console.error(updErr); e.target.value = ''; return; }
+    if (it) it.video_url = pub.publicUrl;
+    formMsg.textContent = 'Video actualizado.'; formMsg.className = 'msg ok';
+    renderVideo(it || { video_url: pub.publicUrl });
     e.target.value = '';
   });
 

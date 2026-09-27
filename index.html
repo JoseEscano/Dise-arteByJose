@@ -260,8 +260,12 @@ a{color:inherit}
 .pd-close{position:sticky;top:10px;margin:10px 10px 0 auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;z-index:2}
 .pd-close svg{width:18px;height:18px}
 @media (min-width:720px){.pd-close{grid-column:1/-1}}
-.pd-gal{position:relative;aspect-ratio:5/4;background:#DADDE3;overflow:hidden}
+.pd-gal{position:relative;aspect-ratio:var(--ar,5/4);background:#DADDE3;overflow:hidden;transition:aspect-ratio .25s ease}
 :root[data-theme="dark"] .pd-gal,@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pd-gal{background:#3A3F4D}}
+.pd-slide.is-video{background:#000}
+.pd-slide.is-video video{width:100%;height:100%;object-fit:cover;display:block}
+.vid-badge{position:absolute;top:14px;left:14px;z-index:2;display:inline-flex;align-items:center;gap:6px;background:rgba(20,22,31,.75);color:#fff;font-size:.78rem;font-weight:650;padding:5px 12px;border-radius:999px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.vid-badge svg{width:13px;height:13px;flex:none}
 .pd-slide{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .35s ease;pointer-events:none}
 .pd-slide.is-on{opacity:1}
 .pd-slide svg{width:34%;height:34%;color:rgba(20,22,31,.28)}
@@ -773,20 +777,6 @@ a{color:inherit}
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaGZkZm55ZWRjYXJwZnZucXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyOTczMTQsImV4cCI6MjEwNTg3MzMxNH0.YIBbyvxuDidB7k2b77vnRGEDvaNeUEbt3VMDWXzZgDc';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const phArt = () => '<div class="ph-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v6"/><path d="M3 18h18M5 18v2M19 18v2M3 12h18"/></svg></div>';
-  function driveFileId(url) {
-    if (!url) return '';
-    const s = url.trim();
-    let m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
-    if (m) return m[1];
-    m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-    if (m) return m[1];
-    if (/^[a-zA-Z0-9_-]{10,}$/.test(s)) return s;
-    return '';
-  }
-  function driveEmbedUrl(url) {
-    const id = driveFileId(url);
-    return id ? `https://drive.google.com/file/d/${id}/preview` : '';
-  }
   const waBase = 'https://wa.me/' + WHATSAPP_NUMBER;
   const wa = t => waBase + '?text=' + encodeURIComponent(t);
   const unit = p => p.sale || p.price;
@@ -908,25 +898,39 @@ a{color:inherit}
     $$('.pd-slide', pdGal).forEach(n => n.remove());
     const dots = $('#pdDots');
     dots.innerHTML = '';
+    pdGal.style.removeProperty('--ar');
+    delete pdGal.dataset.videoRatio;
 
     const items = [];
-    const embed = driveEmbedUrl(p.video);
-    if (embed) items.push({ type: 'video', url: embed });
+    if (p.video) items.push({ type: 'video', url: p.video });
     (Array.isArray(p.images) ? p.images : []).forEach(u => items.push({ type: 'photo', url: u }));
     if (!items.length) items.push({ type: 'empty' });
 
     pdCount = items.length;
     items.forEach((it, i) => {
       const sl = document.createElement('div');
-      sl.className = 'pd-slide' + (i === 0 ? ' is-on' : '');
+      sl.className = 'pd-slide' + (it.type === 'video' ? ' is-video' : '') + (i === 0 ? ' is-on' : '');
+      sl.dataset.type = it.type;
       if (it.type === 'video') {
-        const ifr = document.createElement('iframe');
-        ifr.src = it.url;
-        ifr.loading = 'lazy';
-        ifr.setAttribute('allow', 'autoplay; fullscreen');
-        ifr.setAttribute('allowfullscreen', '');
-        ifr.style.cssText = 'width:100%;height:100%;border:0';
-        sl.appendChild(ifr);
+        const badge = document.createElement('span');
+        badge.className = 'vid-badge';
+        badge.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Video';
+        sl.appendChild(badge);
+
+        const vid = document.createElement('video');
+        vid.src = it.url;
+        vid.controls = true;
+        vid.autoplay = true;
+        vid.muted = true;
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.addEventListener('loadedmetadata', () => {
+          if (!vid.videoWidth || !vid.videoHeight) return;
+          const ratio = vid.videoWidth / vid.videoHeight;
+          pdGal.dataset.videoRatio = ratio;
+          if (sl.classList.contains('is-on')) pdGal.style.setProperty('--ar', ratio);
+        });
+        sl.appendChild(vid);
       } else if (it.type === 'photo') {
         const img = document.createElement('img');
         img.src = it.url; img.alt = ''; img.loading = 'lazy';
@@ -950,15 +954,28 @@ a{color:inherit}
     $('#pdPrev').hidden = !multi;
     $('#pdNext').hidden = !multi;
     pdIdx = 0;
-    console.info(`[disenarte] "${p.name}": ${embed ? '1 video + ' : ''}${(p.images || []).length} foto(s) en la galería.`);
+    console.info(`[disenarte] "${p.name}": ${p.video ? '1 video + ' : ''}${(p.images || []).length} foto(s) en la galería.`);
   }
 
   function pdGo(i) {
     const slides = $$('.pd-slide', pdGal), dots = $$('#pdDots button');
     if (!slides.length) return;
+    const prev = slides[pdIdx];
     pdIdx = (i + slides.length) % slides.length;
+    if (prev && prev !== slides[pdIdx]) {
+      const v = prev.querySelector('video');
+      if (v) v.pause();
+    }
     slides.forEach((s, k) => s.classList.toggle('is-on', k === pdIdx));
     dots.forEach((d, k) => d.classList.toggle('is-on', k === pdIdx));
+    const active = slides[pdIdx];
+    if (active.dataset.type === 'video') {
+      if (pdGal.dataset.videoRatio) pdGal.style.setProperty('--ar', pdGal.dataset.videoRatio);
+      const v = active.querySelector('video');
+      if (v) v.play().catch(() => {});
+    } else {
+      pdGal.style.removeProperty('--ar');
+    }
   }
   $('#pdPrev').addEventListener('click', () => pdGo(pdIdx - 1));
   $('#pdNext').addEventListener('click', () => pdGo(pdIdx + 1));
@@ -985,7 +1002,7 @@ a{color:inherit}
   $('#pdClose').addEventListener('click', () => pd.close());
   pd.addEventListener('click', e => { if (e.target === pd) pd.close(); });
   pd.addEventListener('close', () => {
-    $$('.pd-slide iframe', pdGal).forEach(f => { f.src = f.src; });
+    $$('.pd-slide video', pdGal).forEach(v => v.pause());
   });
 
     /* ---------- pedido por WhatsApp ---------- */
