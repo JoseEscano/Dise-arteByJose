@@ -285,6 +285,19 @@ a{color:inherit}
 .pd-specs span:first-child{color:var(--muted)}
 .pd-actions{display:grid;gap:10px;margin-top:20px}
 
+/* ---------- animaciones al hacer scroll ---------- */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in-view{opacity:1;transform:none}
+.stagger>*{opacity:0;transform:translateY(20px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+.stagger.in-view>*{opacity:1;transform:none}
+.stagger>*:nth-child(1){transition-delay:.02s}
+.stagger>*:nth-child(2){transition-delay:.08s}
+.stagger>*:nth-child(3){transition-delay:.14s}
+.stagger>*:nth-child(4){transition-delay:.2s}
+.stagger>*:nth-child(5){transition-delay:.26s}
+.stagger>*:nth-child(6){transition-delay:.32s}
+@media (prefers-reduced-motion:reduce){.reveal,.stagger>*{opacity:1!important;transform:none!important;transition:none!important}}
+
 /* ---------- pedido ---------- */
 .order{border:0;padding:0;border-radius:28px;width:min(480px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(14,16,22,.6)}
 .order::backdrop{background:rgba(14,16,22,.55)}
@@ -646,10 +659,10 @@ a{color:inherit}
   </section>
 
   <section class="section wrap custom" id="medida" aria-labelledby="t-custom">
-    <div class="custom-head">
+    <div class="custom-head reveal">
       <h2 id="t-custom">Hechos a tu medida</h2>
     </div>
-    <div class="panel">
+    <div class="panel reveal">
       <div class="cta-copy">
         <p class="big">Si quieres tu mueble a medida, háblanos por WhatsApp y cuéntanos tu diseño.</p>
         <p class="small">Uno de nuestros maestros ebanistas conversa contigo sobre tu idea.</p>
@@ -662,7 +675,7 @@ a{color:inherit}
   </section>
 
   <section class="section wrap" id="muestrario" aria-labelledby="t-sw" style="padding-top:0">
-    <div class="shop-head">
+    <div class="shop-head reveal">
       <div>
         <h2 id="t-sw">Maderas y telas</h2>
         <p class="pay-note">Los acabados con los que trabajamos. Dinos cuál te gusta cuando nos escribas.</p>
@@ -670,14 +683,14 @@ a{color:inherit}
       <a class="btn" data-wa="swatch" href="#" target="_blank" rel="noopener">Preguntar por un acabado</a>
     </div>
     <h3 class="sw-title">Maderas</h3>
-    <div class="swatches" id="woods"></div>
+    <div class="swatches stagger" id="woods"></div>
     <h3 class="sw-title">Telas</h3>
-    <div class="swatches" id="fabrics"></div>
+    <div class="swatches stagger" id="fabrics"></div>
   </section>
 
   <section class="section wrap" id="faq" aria-labelledby="t-faq" style="padding-top:0">
-    <h2 id="t-faq" style="font-size:clamp(2rem,4.4vw,3.2rem);font-weight:750">Preguntas frecuentes</h2>
-    <div class="faq-list">
+    <h2 id="t-faq" class="reveal" style="font-size:clamp(2rem,4.4vw,3.2rem);font-weight:750">Preguntas frecuentes</h2>
+    <div class="faq-list stagger">
       <details name="faq"><summary>¿Cómo hago un pedido?</summary><p>Agrega los muebles que te gusten a tu pedido y envíalo por WhatsApp desde el ícono de arriba. También puedes pedir un solo mueble con el botón «Pedir por WhatsApp» de cada tarjeta. Te confirmamos la disponibilidad y coordinamos la entrega.</p></details>
       <details name="faq"><summary>¿Cómo funciona el pago contraentrega?</summary><p>Todas las compras son contraentrega. No pagas nada en la página ni por adelantado: pagas cuando recibes tu mueble en casa.</p></details>
       <details name="faq"><summary>¿Puedo pedir un mueble a medida?</summary><p>Sí. Escríbenos por WhatsApp y cuéntanos tu diseño. Hablas directamente con uno de nuestros maestros ebanistas y conversan sobre tu mueble.</p></details>
@@ -688,7 +701,7 @@ a{color:inherit}
   </section>
 </main>
 
-<footer class="foot" id="contacto">
+<footer class="foot reveal" id="contacto">
   <div class="wrap in">
     <div>
       <a class="brand" href="#top" aria-label="Diseñarte, ir al inicio">
@@ -1232,6 +1245,21 @@ a{color:inherit}
   };
   $$('[data-wa]').forEach(a => { a.href = wa(waMsgs[a.dataset.wa]); });
   if (INSTAGRAM_URL) $('#igFloat').href = INSTAGRAM_URL;
+
+  /* ---------- animaciones al hacer scroll ---------- */
+  const revealEls = $$('.reveal, .stagger');
+  if (revealEls.length) {
+    if (reduce) {
+      revealEls.forEach(el => el.classList.add('in-view'));
+    } else {
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(en => {
+          if (en.isIntersecting) { en.target.classList.add('in-view'); io.unobserve(en.target); }
+        });
+      }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+      revealEls.forEach(el => io.observe(el));
+    }
+  }
 
   /* ---------- inicio ---------- */
   hero.dataset.tone = slides[0].dataset.tone;
